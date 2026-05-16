@@ -1,257 +1,178 @@
-const STORAGE_KEY = "countdown-app";
+/** 8 首热门单曲 × 身体部位热区 */
+const SONGS = [
+  {
+    id: "head",
+    part: "头部",
+    title: "爱如火",
+    lyric: "心在跳是爱情如烈火，你在笑疯狂的人是我",
+    x: 50,
+    y: 11,
+    bvid: "BV1JM411M7qj",
+    neteaseId: "1999552137",
+  },
+  {
+    id: "face",
+    part: "面颊",
+    title: "恨如冰",
+    lyric: "恨如冰，我的爱恨如冰",
+    x: 50,
+    y: 17,
+    bvid: "BV1vu411g7Pm",
+    neteaseId: "2083147955",
+  },
+  {
+    id: "chest",
+    part: "胸口",
+    title: "谁能给我爱",
+    lyric: "谁能给我爱，谁能给我关怀",
+    x: 50,
+    y: 26,
+    bvid: "BV1sbreYjEuh",
+    neteaseId: "2663794686",
+  },
+  {
+    id: "belly",
+    part: "腰腹",
+    title: "坚强笨女人",
+    lyric: "我是个坚强的笨女人，我是个可爱的女人",
+    x: 50,
+    y: 36,
+    neteaseId: "2629646821",
+  },
+  {
+    id: "left-hand",
+    part: "左手",
+    title: "情如疯",
+    lyric: "情如疯，爱如火在胸中",
+    x: 34,
+    y: 28,
+    neteaseId: "2747130581",
+  },
+  {
+    id: "right-hand",
+    part: "右手",
+    title: "空荡的酒杯",
+    lyric: "这空荡的酒杯，这微醺的滋味",
+    x: 66,
+    y: 28,
+    neteaseId: "2694491382",
+  },
+  {
+    id: "left-leg",
+    part: "左腿",
+    title: "翠霞吊孝",
+    lyric: "翠霞吊孝，万人迷与娜娜的魔性旋律",
+    x: 44,
+    y: 72,
+    neteaseId: "2092489060",
+  },
+  {
+    id: "right-leg",
+    part: "右腿",
+    title: "贝如塔",
+    lyric: "贝如塔那么好听，全球发行",
+    x: 56,
+    y: 72,
+    bvid: "BV1Br421J7ts",
+    neteaseId: "2108021263",
+  },
+];
 
-const $ = (sel) => document.querySelector(sel);
+const hotspotsEl = document.getElementById("hotspots");
+const trackListEl = document.getElementById("track-list");
+const playerFrame = document.getElementById("player-frame");
+const playerPlaceholder = document.getElementById("player-placeholder");
+const npPart = document.getElementById("np-part");
+const npTitle = document.getElementById("np-title");
+const npLyric = document.getElementById("np-lyric");
 
-const setup = $("#setup");
-const countdown = $("#countdown");
-const setupForm = $("#setup-form");
-const eventNameInput = $("#event-name");
-const targetInput = $("#target-datetime");
-const displayName = $("#display-name");
-const displayTarget = $("#display-target");
-const timer = $("#timer");
-const progressBar = $("#progress-bar");
-const finished = $("#finished");
-const editBtn = $("#edit-btn");
-const resetBtn = $("#reset-btn");
+let activeId = null;
 
-const units = {
-  days: $("#days"),
-  hours: $("#hours"),
-  minutes: $("#minutes"),
-  seconds: $("#seconds"),
-};
-
-let tickInterval = null;
-let state = loadState();
-
-function loadState() {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    return raw ? JSON.parse(raw) : null;
-  } catch {
-    return null;
+function playerUrl(song) {
+  if (song.bvid) {
+    return `https://player.bilibili.com/player.html?bvid=${song.bvid}&autoplay=1&high_quality=1`;
   }
+  if (song.neteaseId) {
+    return `https://music.163.com/outchain/player?type=2&id=${song.neteaseId}&auto=1&height=86`;
+  }
+  return "";
 }
 
-function saveState(data) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+function isBilibili(song) {
+  return Boolean(song.bvid);
 }
 
-function clearState() {
-  localStorage.removeItem(STORAGE_KEY);
-}
+function playSong(song) {
+  activeId = song.id;
 
-function pad(n) {
-  return String(n).padStart(2, "0");
-}
+  npPart.textContent = song.part;
+  npTitle.textContent = `《${song.title}》`;
+  npLyric.textContent = song.lyric;
 
-function formatDisplayDate(iso) {
-  return new Date(iso).toLocaleString(undefined, {
-    weekday: "long",
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-    hour: "numeric",
-    minute: "2-digit",
+  const url = playerUrl(song);
+  const bilibili = isBilibili(song);
+
+  playerFrame.classList.toggle("is-visible", bilibili);
+  playerPlaceholder.classList.add("is-hidden");
+
+  if (url) {
+    playerFrame.src = "about:blank";
+    requestAnimationFrame(() => {
+      playerFrame.src = url;
+    });
+  }
+
+  document.querySelectorAll(".hotspot").forEach((btn) => {
+    btn.classList.toggle("is-active", btn.dataset.id === song.id);
+  });
+
+  document.querySelectorAll(".track-item").forEach((btn) => {
+    btn.classList.toggle("is-active", btn.dataset.id === song.id);
   });
 }
 
-function toLocalDatetimeValue(date) {
-  const d = new Date(date);
-  const offset = d.getTimezoneOffset();
-  const local = new Date(d.getTime() - offset * 60 * 1000);
-  return local.toISOString().slice(0, 16);
-}
+function buildHotspots() {
+  SONGS.forEach((song) => {
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "hotspot";
+    btn.dataset.id = song.id;
+    btn.style.left = `${song.x}%`;
+    btn.style.top = `${song.y}%`;
+    btn.setAttribute("aria-label", `${song.part}：${song.title}`);
 
-function setDefaultDatetime() {
-  const inOneHour = new Date(Date.now() + 60 * 60 * 1000);
-  targetInput.value = toLocalDatetimeValue(inOneHour);
-}
+    const label = document.createElement("span");
+    label.className = "hotspot-label";
+    label.textContent = `${song.part} · ${song.title}`;
+    btn.appendChild(label);
 
-function applyPreset(preset) {
-  const now = Date.now();
-  let target;
-
-  switch (preset) {
-    case "1h":
-      target = new Date(now + 60 * 60 * 1000);
-      break;
-    case "24h":
-      target = new Date(now + 24 * 60 * 60 * 1000);
-      break;
-    case "7d":
-      target = new Date(now + 7 * 24 * 60 * 60 * 1000);
-      break;
-    case "ny": {
-      const year = new Date().getFullYear();
-      const ny = new Date(year + 1, 0, 1, 0, 0, 0);
-      target = ny;
-      eventNameInput.value = "New Year";
-      break;
-    }
-    default:
-      return;
-  }
-
-  targetInput.value = toLocalDatetimeValue(target);
-  document.querySelectorAll(".preset").forEach((btn) => {
-    btn.classList.toggle("active", btn.dataset.preset === preset);
+    btn.addEventListener("click", () => playSong(song));
+    hotspotsEl.appendChild(btn);
   });
 }
 
-function getRemaining(targetIso) {
-  const diff = new Date(targetIso).getTime() - Date.now();
-  if (diff <= 0) {
-    return { total: 0, days: 0, hours: 0, minutes: 0, seconds: 0, done: true };
-  }
+function buildTrackList() {
+  SONGS.forEach((song, index) => {
+    const li = document.createElement("li");
 
-  const seconds = Math.floor(diff / 1000);
-  const days = Math.floor(seconds / 86400);
-  const hours = Math.floor((seconds % 86400) / 3600);
-  const minutes = Math.floor((seconds % 3600) / 60);
-  const secs = seconds % 60;
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "track-item";
+    btn.dataset.id = song.id;
+    btn.innerHTML = `
+      <span class="track-num">${String(index + 1).padStart(2, "0")}</span>
+      <span class="track-meta">
+        <span class="track-part">${song.part}</span>
+        <span class="track-title">${song.title}</span>
+      </span>
+      <span class="track-play" aria-hidden="true">▶</span>
+    `;
 
-  return { total: diff, days, hours, minutes, seconds: secs, done: false };
+    btn.addEventListener("click", () => playSong(song));
+    li.appendChild(btn);
+    trackListEl.appendChild(li);
+  });
 }
 
-function getProgress(targetIso, startedAt) {
-  const target = new Date(targetIso).getTime();
-  const start = startedAt || Date.now();
-  const total = target - start;
-  const elapsed = Date.now() - start;
-  if (total <= 0) return 100;
-  return Math.min(100, Math.max(0, (elapsed / total) * 100));
-}
-
-function flashUnit(name) {
-  const el = timer.querySelector(`[data-unit="${name}"]`);
-  if (!el) return;
-  el.classList.add("tick");
-  setTimeout(() => el.classList.remove("tick"), 300);
-}
-
-let prevSeconds = null;
-
-function render(data) {
-  const { name, target, startedAt } = data;
-  const remaining = getRemaining(target);
-  const progress = getProgress(target, startedAt);
-
-  displayName.textContent = name || "Countdown";
-  displayTarget.textContent = formatDisplayDate(target);
-
-  units.days.textContent = pad(remaining.days);
-  units.hours.textContent = pad(remaining.hours);
-  units.minutes.textContent = pad(remaining.minutes);
-  units.seconds.textContent = pad(remaining.seconds);
-
-  if (prevSeconds !== null && prevSeconds !== remaining.seconds) {
-    flashUnit("seconds");
-  }
-  prevSeconds = remaining.seconds;
-
-  progressBar.style.width = `${progress}%`;
-  progressBar.setAttribute("aria-valuenow", Math.round(progress));
-
-  if (remaining.done) {
-    countdown.classList.add("complete");
-    finished.classList.remove("hidden");
-    stopTick();
-  } else {
-    countdown.classList.remove("complete");
-    finished.classList.add("hidden");
-  }
-}
-
-function showCountdown(data) {
-  setup.classList.add("hidden");
-  countdown.classList.remove("hidden");
-  prevSeconds = null;
-  render(data);
-  startTick(data);
-}
-
-function showSetup(prefill) {
-  stopTick();
-  setup.classList.remove("hidden");
-  countdown.classList.add("hidden");
-
-  if (prefill) {
-    eventNameInput.value = prefill.name || "";
-    targetInput.value = toLocalDatetimeValue(prefill.target);
-  }
-}
-
-function startTick(data) {
-  stopTick();
-  tickInterval = setInterval(() => render(data), 1000);
-}
-
-function stopTick() {
-  if (tickInterval) {
-    clearInterval(tickInterval);
-    tickInterval = null;
-  }
-}
-
-function startCountdown(e) {
-  e.preventDefault();
-
-  const name = eventNameInput.value.trim();
-  const targetLocal = targetInput.value;
-  if (!targetLocal) return;
-
-  const target = new Date(targetLocal).toISOString();
-  if (new Date(target) <= new Date()) {
-    targetInput.setCustomValidity("Pick a future date and time.");
-    targetInput.reportValidity();
-    return;
-  }
-  targetInput.setCustomValidity("");
-
-  const data = {
-    name: name || "Countdown",
-    target,
-    startedAt: Date.now(),
-  };
-
-  state = data;
-  saveState(data);
-  showCountdown(data);
-}
-
-document.querySelectorAll(".preset").forEach((btn) => {
-  btn.addEventListener("click", () => applyPreset(btn.dataset.preset));
-});
-
-targetInput.addEventListener("input", () => {
-  targetInput.setCustomValidity("");
-  document.querySelectorAll(".preset").forEach((b) => b.classList.remove("active"));
-});
-
-setupForm.addEventListener("submit", startCountdown);
-
-editBtn.addEventListener("click", () => {
-  if (state) showSetup(state);
-});
-
-resetBtn.addEventListener("click", () => {
-  state = null;
-  clearState();
-  stopTick();
-  eventNameInput.value = "";
-  setDefaultDatetime();
-  document.querySelectorAll(".preset").forEach((b) => b.classList.remove("active"));
-  showSetup();
-});
-
-setDefaultDatetime();
-
-if (state && new Date(state.target) > new Date()) {
-  showCountdown(state);
-} else if (state) {
-  showCountdown(state);
-} else {
-  showSetup();
-}
+buildHotspots();
+buildTrackList();

@@ -1,94 +1,70 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-CN">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Countdown</title>
+  <title>那艺娜 · 点击身体听热歌</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700;900&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
-  <div class="bg-orbs" aria-hidden="true">
-    <span class="orb orb-1"></span>
-    <span class="orb orb-2"></span>
-    <span class="orb orb-3"></span>
-  </div>
+  <div class="bg-fire" aria-hidden="true"></div>
 
   <main class="app">
     <header class="header">
-      <h1 class="title">Countdown</h1>
-      <p class="subtitle">Set a moment. Watch it arrive.</p>
+      <p class="eyebrow">NAYINA INTERACTIVE</p>
+      <h1 class="title">那艺娜</h1>
+      <p class="subtitle">点击身体不同部位，播放 8 首最火单曲</p>
     </header>
 
-    <section class="setup" id="setup">
-      <form class="setup-form" id="setup-form">
-        <label class="field">
-          <span class="field-label">Event name</span>
-          <input type="text" id="event-name" placeholder="New Year, Launch day…" maxlength="60" />
-        </label>
+    <div class="layout">
+      <section class="figure-panel" aria-label="那艺娜全身图互动区">
+        <div class="figure-glow" aria-hidden="true"></div>
+        <div class="figure-wrap" id="figure-wrap">
+          <img
+            class="figure-img"
+            src="assets/nayina.jpg"
+            alt="那艺娜全身照（《贝如塔》宣传图）"
+            width="606"
+            height="1079"
+            draggable="false"
+          />
+          <div class="figure-overlay" aria-hidden="true"></div>
+          <div class="hotspots" id="hotspots" role="group" aria-label="身体部位热区"></div>
+        </div>
+        <p class="figure-hint">鼠标悬停查看部位 · 点击开始播放</p>
+      </section>
 
-        <label class="field">
-          <span class="field-label">Target date & time</span>
-          <input type="datetime-local" id="target-datetime" required />
-        </label>
+      <aside class="player-panel">
+        <div class="now-playing">
+          <p class="np-label">正在播放</p>
+          <h2 class="np-part" id="np-part">—</h2>
+          <h3 class="np-title" id="np-title">点击左侧身体开始</h3>
+          <p class="np-lyric" id="np-lyric">心在跳是爱情如烈火…</p>
+        </div>
 
-        <div class="presets" aria-label="Quick presets">
-          <span class="presets-label">Quick pick</span>
-          <div class="preset-buttons">
-            <button type="button" class="preset" data-preset="1h">1 hour</button>
-            <button type="button" class="preset" data-preset="24h">24 hours</button>
-            <button type="button" class="preset" data-preset="7d">7 days</button>
-            <button type="button" class="preset" data-preset="ny">New Year</button>
+        <div class="player-frame-wrap">
+          <iframe
+            id="player-frame"
+            class="player-frame"
+            title="音乐播放器"
+            allow="autoplay; encrypted-media"
+            loading="lazy"
+            referrerpolicy="no-referrer-when-downgrade"
+          ></iframe>
+          <div class="player-placeholder" id="player-placeholder">
+            <span class="placeholder-icon">♪</span>
+            <p>选择身体部位播放</p>
           </div>
         </div>
 
-        <button type="submit" class="btn-primary">Start countdown</button>
-      </form>
-    </section>
-
-    <section class="countdown hidden" id="countdown" aria-live="polite">
-      <div class="event-meta">
-        <h2 class="event-name" id="display-name">Event</h2>
-        <p class="event-target" id="display-target"></p>
-      </div>
-
-      <div class="timer" id="timer">
-        <div class="unit" data-unit="days">
-          <span class="value" id="days">00</span>
-          <span class="label">Days</span>
-        </div>
-        <span class="separator">:</span>
-        <div class="unit" data-unit="hours">
-          <span class="value" id="hours">00</span>
-          <span class="label">Hours</span>
-        </div>
-        <span class="separator">:</span>
-        <div class="unit" data-unit="minutes">
-          <span class="value" id="minutes">00</span>
-          <span class="label">Minutes</span>
-        </div>
-        <span class="separator">:</span>
-        <div class="unit" data-unit="seconds">
-          <span class="value" id="seconds">00</span>
-          <span class="label">Seconds</span>
-        </div>
-      </div>
-
-      <div class="progress-wrap">
-        <div class="progress-bar" id="progress-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"></div>
-      </div>
-
-      <p class="finished hidden" id="finished">Time’s up!</p>
-
-      <div class="actions">
-        <button type="button" class="btn-secondary" id="edit-btn">Change date</button>
-        <button type="button" class="btn-ghost" id="reset-btn">Reset</button>
-      </div>
-    </section>
+        <ol class="track-list" id="track-list" aria-label="热门单曲列表"></ol>
+      </aside>
+    </div>
   </main>
 
-  <script src="app.js"></script>
+  <script src="app.js" type="module"></script>
 </body>
 </html>
